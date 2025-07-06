@@ -12,14 +12,23 @@ interface Message {
   botType?: 'business' | 'healthcare'
 }
 
-type BotType = 'business' | 'healthcare'
-
 export default function Home() {
   const { theme, toggleTheme } = useTheme()
-  const [messages, setMessages] = useState<Message[]>([])
+  // Separate message histories for each bot
+  const [businessMessages, setBusinessMessages] = useState<Message[]>([])
+  const [healthcareMessages, setHealthcareMessages] = useState<Message[]>([])
   const [inputValue, setInputValue] = useState('')
   const [isLoading, setIsLoading] = useState(false)
-  const [selectedBot, setSelectedBot] = useState<BotType>('business')
+  const [selectedBot, setSelectedBot] = useState<'business' | 'healthcare'>('business')
+
+  // Get current messages based on selected bot
+  const currentMessages = selectedBot === 'business' ? businessMessages : healthcareMessages
+  const setCurrentMessages = selectedBot === 'business' ? setBusinessMessages : setHealthcareMessages
+
+  // Clear current bot's conversation history
+  const clearCurrentHistory = () => {
+    setCurrentMessages([])
+  }
 
   const sendMessage = async () => {
     if (!inputValue.trim()) return
@@ -28,10 +37,12 @@ export default function Home() {
       id: Date.now().toString(),
       content: inputValue,
       sender: 'user',
-      timestamp: new Date()
+      timestamp: new Date(),
+      botType: selectedBot
     }
 
-    setMessages(prev => [...prev, userMessage])
+    // Add message to the current bot's history
+    setCurrentMessages(prev => [...prev, userMessage])
     setInputValue('')
     setIsLoading(true)
 
@@ -62,7 +73,8 @@ export default function Home() {
         botType: selectedBot
       }
 
-      setMessages(prev => [...prev, botMessage])
+      // Add bot response to the current bot's history
+      setCurrentMessages(prev => [...prev, botMessage])
     } catch (error) {
       console.error('API Error:', error)
       const errorMessage: Message = {
@@ -72,7 +84,8 @@ export default function Home() {
         timestamp: new Date(),
         botType: selectedBot
       }
-      setMessages(prev => [...prev, errorMessage])
+      // Add error message to the current bot's history
+      setCurrentMessages(prev => [...prev, errorMessage])
     }
 
     setIsLoading(false)
@@ -85,14 +98,138 @@ export default function Home() {
     }
   }
 
-  const getBotIcon = (botType: BotType) => {
+  const getBotIcon = (botType: 'business' | 'healthcare') => {
     return botType === 'business' ? Building2 : Heart
   }
 
-  const getBotColor = (botType: BotType) => {
+  const getBotColor = (botType: 'business' | 'healthcare') => {
     return botType === 'business' 
       ? 'text-blue-600 dark:text-blue-400' 
       : 'text-green-600 dark:text-green-400'
+  }
+
+  // Enhanced function to parse and format bot responses
+  const parseResponse = (text: string) => {
+    if (!text) return text
+
+    // Split by lines first to handle line breaks
+    const lines = text.split('\n')
+    
+    return lines.map((line, lineIndex) => {
+      const trimmedLine = line.trim()
+      
+      // Handle empty lines
+      if (!trimmedLine) return <br key={lineIndex} />
+      
+      // Handle headers (### Header)
+      const headerMatch = trimmedLine.match(/^(#{1,3})\s+(.+)$/)
+      if (headerMatch) {
+        const level = headerMatch[1].length
+        const content = headerMatch[2]
+        const HeaderTag = `h${Math.min(level + 2, 6)}` as keyof JSX.IntrinsicElements
+        return (
+          <HeaderTag key={lineIndex} className="font-semibold text-gray-900 dark:text-white mb-2 mt-3">
+            {content}
+          </HeaderTag>
+        )
+      }
+      
+      // Handle medical disclaimer specially
+      if (trimmedLine.includes('⚠️') && (trimmedLine.includes('Medical Disclaimer') || trimmedLine.includes('educational purposes'))) {
+        const cleanText = trimmedLine.replace(/⚠️\s*\*\*|\*\*/g, '').replace('Medical Disclaimer:', '').trim()
+        return (
+          <div key={lineIndex} className="mt-3 p-3 bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <div className="flex items-start gap-2">
+              <span className="text-yellow-600 dark:text-yellow-400 text-sm">⚠️</span>
+              <div className="text-xs text-yellow-800 dark:text-yellow-200 font-medium">
+                <strong>Medical Disclaimer:</strong> {cleanText}
+              </div>
+            </div>
+          </div>
+        )
+      }
+      
+      // Parse inline formatting within each line
+      const parts: { type: string; content: string; id: number }[] = []
+      let currentText = trimmedLine
+      let partIndex = 0
+      
+      // First pass: Handle bold text (**text**) - need to do this before italic to avoid conflicts
+      currentText = currentText.replace(/\*\*(.*?)\*\*/g, (match, content) => {
+        const placeholder = `__BOLD_${partIndex}__`
+        parts.push({ type: 'bold', content, id: partIndex })
+        partIndex++
+        return placeholder
+      })
+      
+      // Second pass: Handle italic/emphasis (*text*) - only single asterisks not already processed
+      currentText = currentText.replace(/(?<!\*)(\*)(?!\*)([^*]+?)(\*)(?!\*)/g, (match, start, content, end) => {
+        const placeholder = `__ITALIC_${partIndex}__`
+        parts.push({ type: 'italic', content, id: partIndex })
+        partIndex++
+        return placeholder
+      })
+      
+      // Handle bullet points more flexibly (*, •, -, or numbers)
+      const bulletPatterns = [
+        /^[\s]*\*\s+(.+)$/, // * bullet
+        /^[\s]*[•]\s+(.+)$/, // • bullet
+        /^[\s]*[-]\s+(.+)$/, // - bullet
+        /^[\s]*\d+\.\s+(.+)$/ // numbered list
+      ]
+      
+      let isBulletPoint = false
+      let bulletContent = currentText
+      let bulletSymbol = '•'
+      
+      for (const pattern of bulletPatterns) {
+        const match = currentText.match(pattern)
+        if (match) {
+          isBulletPoint = true
+          bulletContent = match[1]
+          // Determine bullet symbol based on original pattern
+          if (trimmedLine.includes('*')) bulletSymbol = '•'
+          else if (trimmedLine.includes('•')) bulletSymbol = '•'
+          else if (trimmedLine.includes('-')) bulletSymbol = '•'
+          else if (/^\d+\./.test(trimmedLine)) {
+            const numberMatch = trimmedLine.match(/^(\d+)\.\s/)
+            bulletSymbol = numberMatch ? `${numberMatch[1]}.` : '•'
+          }
+          break
+        }
+      }
+      
+      // Split text by placeholders and create elements
+      const textParts = bulletContent.split(/(__(?:BOLD|ITALIC)_\d+__)/g)
+      
+      const formattedContent = textParts.map((part, index) => {
+        const boldMatch = part.match(/^__BOLD_(\d+)__$/)
+        const italicMatch = part.match(/^__ITALIC_(\d+)__$/)
+        
+        if (boldMatch) {
+          const boldPart = parts.find(p => p.id === parseInt(boldMatch[1]))
+          return <strong key={`${lineIndex}-${index}`} className="font-semibold text-gray-900 dark:text-white">{boldPart?.content}</strong>
+        } else if (italicMatch) {
+          const italicPart = parts.find(p => p.id === parseInt(italicMatch[1]))
+          return <em key={`${lineIndex}-${index}`} className="italic text-gray-700 dark:text-gray-300">{italicPart?.content}</em>
+        } else {
+          return part
+        }
+      })
+      
+      if (isBulletPoint) {
+        return (
+          <div key={lineIndex} className="flex items-start gap-2 ml-4 my-1">
+            <span className="text-blue-600 dark:text-blue-400 mt-0.5 font-medium text-sm min-w-[1rem]">
+              {bulletSymbol}
+            </span>
+            <span className="flex-1">{formattedContent}</span>
+          </div>
+        )
+      }
+      
+      return <div key={lineIndex} className="my-1 leading-relaxed">{formattedContent}</div>
+    })
   }
 
   return (
@@ -119,7 +256,12 @@ export default function Home() {
                 }`}
               >
                 <Building2 className="w-4 h-4" />
-                Business
+                <span>Business</span>
+                {businessMessages.length > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-blue-100 dark:bg-blue-900 text-blue-600 dark:text-blue-300 rounded-full">
+                    {Math.ceil(businessMessages.filter(m => m.sender === 'user').length)}
+                  </span>
+                )}
               </button>
               <button
                 onClick={() => setSelectedBot('healthcare')}
@@ -130,9 +272,25 @@ export default function Home() {
                 }`}
               >
                 <Heart className="w-4 h-4" />
-                Healthcare
+                <span>Healthcare</span>
+                {healthcareMessages.length > 0 && (
+                  <span className="ml-1 px-1.5 py-0.5 text-xs bg-green-100 dark:bg-green-900 text-green-600 dark:text-green-300 rounded-full">
+                    {Math.ceil(healthcareMessages.filter(m => m.sender === 'user').length)}
+                  </span>
+                )}
               </button>
             </div>
+            
+            {/* Clear History Button */}
+            {currentMessages.length > 0 && (
+              <button
+                onClick={clearCurrentHistory}
+                className="px-3 py-1.5 text-sm text-gray-600 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20 rounded-lg transition-colors"
+                title={`Clear ${selectedBot} chat history`}
+              >
+                Clear
+              </button>
+            )}
             
             <button
               onClick={toggleTheme}
@@ -147,8 +305,22 @@ export default function Home() {
       {/* Messages */}
       <div className="flex-1 overflow-hidden">
         <div className="h-full max-w-4xl mx-auto flex flex-col">
-          <div className="flex-1 overflow-y-auto px-4 py-6 scrollbar-thin">
-            {messages.length === 0 ? (
+          {/* Bot History Indicator */}
+          {(businessMessages.length > 0 || healthcareMessages.length > 0) && (
+            <div className="px-4 py-2 border-b border-gray-100 dark:border-gray-800">
+              <div className="text-xs text-gray-500 dark:text-gray-400 text-center">
+                Viewing {selectedBot === 'business' ? 'Business' : 'Healthcare'} conversation history 
+                {currentMessages.length > 0 && (
+                  <span className="ml-1">
+                    ({Math.ceil(currentMessages.filter(m => m.sender === 'user').length)} questions)
+                  </span>
+                )}
+              </div>
+            </div>
+          )}
+          
+          <div className="flex-1 overflow-y-auto px-4 py-6 scrollbar-thin transition-all duration-300 ease-in-out">
+            {currentMessages.length === 0 ? (
               <div className="text-center py-12">
                 <div className={`inline-flex p-4 rounded-full mb-4 ${getBotColor(selectedBot)} bg-gray-100 dark:bg-gray-800`}>
                   {(() => {
@@ -168,7 +340,7 @@ export default function Home() {
               </div>
             ) : (
               <div className="space-y-4">
-                {messages.map((message) => (
+                {currentMessages.map((message) => (
                   <div
                     key={message.id}
                     className={`flex gap-3 ${message.sender === 'user' ? 'justify-end' : 'justify-start'} message-enter`}
@@ -191,7 +363,9 @@ export default function Home() {
                         ? 'bg-primary-600 text-white'
                         : 'bg-white dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-700'
                     }`}>
-                      <p className="text-sm whitespace-pre-wrap">{message.content}</p>
+                      <div className="text-sm space-y-1">
+                        {message.sender === 'bot' ? parseResponse(message.content) : message.content}
+                      </div>
                     </div>
 
                     {message.sender === 'user' && (

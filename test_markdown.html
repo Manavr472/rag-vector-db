@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Markdown Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; padding: 20px; max-width: 800px; margin: 0 auto; }
+        .test-section { margin: 20px 0; padding: 15px; border: 1px solid #ddd; border-radius: 8px; }
+        .bullet-point { display: flex; align-items: start; gap: 8px; margin: 4px 0; margin-left: 16px; }
+        .bullet-symbol { color: #3b82f6; margin-top: 2px; font-weight: 500; font-size: 14px; min-width: 16px; }
+        strong { font-weight: 600; color: #1f2937; }
+        em { font-style: italic; color: #374151; }
+        h3 { font-weight: 600; font-size: 18px; margin: 12px 0 8px 0; color: #1f2937; }
+        h2 { font-weight: bold; font-size: 20px; margin: 16px 0 8px 0; color: #1f2937; }
+        .warning { background: #fef3c7; border: 1px solid #fbbf24; border-radius: 8px; padding: 12px; margin: 12px 0 8px 0; }
+        .warning-content { color: #92400e; font-size: 12px; display: flex; align-items: start; gap: 8px; }
+        .para { margin: 8px 0; line-height: 1.6; }
+    </style>
+</head>
+<body>
+    <h1>Markdown Formatting Test</h1>
+    
+    <div class="test-section">
+        <h2>Test Input:</h2>
+        <pre id="input-text">**TechFlow Solutions** offers comprehensive technology services:
+
+* **Web Development**: React, Vue.js, Angular, Next.js
+* **Mobile Development**: Native iOS/Android, React Native, Flutter
+* **Cloud Solutions**: AWS, Azure, Google Cloud deployment
+* **Consulting Services**: Digital transformation and strategy
+
+We work with modern technologies to deliver *scalable solutions*.</pre>
+    </div>
+    
+    <div class="test-section">
+        <h2>Expected Output:</h2>
+        <div id="output-text"></div>
+    </div>
+
+    <script>
+        // Simulated parsing function from React component
+        function parseResponse(text) {
+            if (!text) return text;
+
+            const lines = text.split('\n');
+            const elements = [];
+            
+            lines.forEach((line, lineIndex) => {
+                const trimmedLine = line.trim();
+                
+                // Handle empty lines
+                if (!trimmedLine) {
+                    elements.push(document.createElement('br'));
+                    return;
+                }
+                
+                // Handle headers (### Header)
+                const headerMatch = trimmedLine.match(/^(#{1,3})\s+(.+)$/);
+                if (headerMatch) {
+                    const level = headerMatch[1].length;
+                    const content = headerMatch[2];
+                    const headerTag = document.createElement(`h${Math.min(level + 2, 6)}`);
+                    headerTag.className = "font-semibold text-gray-900 dark:text-white mb-2 mt-3";
+                    headerTag.textContent = content;
+                    elements.push(headerTag);
+                    return;
+                }
+                
+                // Parse inline formatting within each line
+                let currentText = trimmedLine;
+                
+                // First pass: Handle bold text (**text**)
+                currentText = currentText.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                
+                // Second pass: Handle italic/emphasis (*text*) - only single asterisks
+                currentText = currentText.replace(/(?<!\*)(\*)(?!\*)([^*]+?)(\*)(?!\*)/g, '<em>$2</em>');
+                
+                // Handle bullet points more flexibly
+                const bulletPatterns = [
+                    /^[\s]*\*\s+(.+)$/, // * bullet
+                    /^[\s]*[•]\s+(.+)$/, // • bullet
+                    /^[\s]*[-]\s+(.+)$/, // - bullet
+                    /^[\s]*\d+\.\s+(.+)$/ // numbered list
+                ];
+                
+                let isBulletPoint = false;
+                let bulletContent = currentText;
+                let bulletSymbol = '•';
+                
+                for (const pattern of bulletPatterns) {
+                    const match = currentText.match(pattern);
+                    if (match) {
+                        isBulletPoint = true;
+                        bulletContent = match[1];
+                        if (trimmedLine.includes('*')) bulletSymbol = '•';
+                        else if (trimmedLine.includes('•')) bulletSymbol = '•';
+                        else if (trimmedLine.includes('-')) bulletSymbol = '•';
+                        else if (/^\d+\./.test(trimmedLine)) {
+                            const numberMatch = trimmedLine.match(/^(\d+)\.\s/);
+                            bulletSymbol = numberMatch ? `${numberMatch[1]}.` : '•';
+                        }
+                        break;
+                    }
+                }
+                
+                if (isBulletPoint) {
+                    const bulletDiv = document.createElement('div');
+                    bulletDiv.className = 'bullet-point';
+                    
+                    const bulletSpan = document.createElement('span');
+                    bulletSpan.className = 'bullet-symbol';
+                    bulletSpan.textContent = bulletSymbol;
+                    
+                    const contentSpan = document.createElement('span');
+                    contentSpan.innerHTML = bulletContent;
+                    
+                    bulletDiv.appendChild(bulletSpan);
+                    bulletDiv.appendChild(contentSpan);
+                    elements.push(bulletDiv);
+                } else {
+                    const paraDiv = document.createElement('div');
+                    paraDiv.className = 'para';
+                    paraDiv.innerHTML = currentText;
+                    elements.push(paraDiv);
+                }
+            });
+            
+            return elements;
+        }
+
+        // Test the parsing
+        const inputText = document.getElementById('input-text').textContent;
+        const outputDiv = document.getElementById('output-text');
+        
+        const parsedElements = parseResponse(inputText);
+        parsedElements.forEach(element => {
+            outputDiv.appendChild(element);
+        });
+    </script>
+</body>
+</html>

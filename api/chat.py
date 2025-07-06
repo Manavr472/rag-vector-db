@@ -8,17 +8,98 @@ from typing import Dict, Any
 
 # Simple mock responses for Vercel deployment
 BUSINESS_RESPONSES = {
-    "services": "TechFlow Solutions offers web development, mobile development, cloud solutions, and consulting services. We work with modern technologies like React, Node.js, Python, and cloud platforms.",
-    "pricing": "Our pricing varies by project complexity. Web development starts at $5,000, mobile apps from $10,000, and cloud solutions from $3,000. Contact us for a detailed quote.",
-    "company": "TechFlow Solutions is a leading software development company founded in 2018. We specialize in delivering innovative technology solutions for businesses worldwide.",
-    "default": "I'm TechFlow Solutions' business assistant. I can help with questions about our services, pricing, and company information. What would you like to know?"
+    "services": """**TechFlow Solutions** offers comprehensive technology services:
+
+• **Web Development**: React, Vue.js, Angular, Next.js
+• **Mobile Development**: Native iOS/Android, React Native, Flutter
+• **Cloud Solutions**: AWS, Azure, Google Cloud deployment
+• **Consulting Services**: Digital transformation and strategy
+
+We work with modern technologies to deliver scalable solutions.""",
+    
+    "pricing": """Our **pricing structure** varies by project complexity:
+
+**Web Development:**
+• Simple websites: $5,000 - $15,000
+• Complex web applications: $20,000 - $100,000+
+• E-commerce platforms: $15,000 - $50,000
+
+**Mobile Development:**
+• Simple mobile apps: $10,000 - $30,000
+• Complex mobile apps: $40,000 - $150,000+
+
+**Cloud & DevOps:**
+• Cloud migration: $5,000 - $25,000
+• DevOps setup: $3,000 - $15,000
+
+*Contact us for a detailed quote tailored to your needs.*""",
+    
+    "company": """**TechFlow Solutions** is a leading software development company founded in 2018.
+
+### Our Mission
+To deliver innovative technology solutions that drive business growth.
+
+### Our Vision  
+To be the most trusted technology partner for businesses worldwide.
+
+### Core Values
+• **Innovation**: Embracing cutting-edge technologies
+• **Quality**: Delivering excellence in every project
+• **Collaboration**: Working closely with our clients
+• **Integrity**: Maintaining the highest ethical standards""",
+    
+    "default": "I'm **TechFlow Solutions'** business assistant. I can help with questions about our *services*, *pricing*, and *company information*. What would you like to know?"
 }
 
 HEALTHCARE_RESPONSES = {
-    "diabetes": "Diabetes is a metabolic disorder characterized by high blood sugar levels. Type 1 develops in childhood, Type 2 is most common and related to insulin resistance. Symptoms include increased thirst, frequent urination, and fatigue.",
-    "blood_pressure": "Normal blood pressure is less than 120/80 mmHg. High blood pressure (hypertension) is often called the 'silent killer' as it typically has no symptoms. Risk factors include age, family history, and lifestyle factors.",
-    "heart_disease": "Heart disease prevention includes maintaining a healthy diet, regular exercise, not smoking, managing stress, and regular health screenings including blood pressure and cholesterol checks.",
-    "default": "I'm a healthcare information assistant. I provide general health information for educational purposes only. This should not replace professional medical advice."
+    "diabetes": """**Diabetes** is a group of metabolic disorders characterized by high blood sugar levels over a prolonged period.
+
+### Types of Diabetes:
+• **Type 1 Diabetes**: Usually develops in childhood, the body doesn't produce insulin
+• **Type 2 Diabetes**: Most common form, the body doesn't use insulin properly  
+• **Gestational Diabetes**: Develops during pregnancy
+
+### Common Symptoms:
+• Increased thirst
+• Frequent urination
+• Fatigue and weakness
+• Blurred vision
+• Slow-healing wounds""",
+    
+    "blood_pressure": """**Hypertension (High Blood Pressure)** is often called the *"silent killer"* because it typically has no symptoms.
+
+### Blood Pressure Ranges:
+• **Normal**: Less than 120/80 mmHg
+• **Elevated**: 120-129 systolic and less than 80 diastolic
+• **Stage 1 hypertension**: 130-139 systolic or 80-89 diastolic
+• **Stage 2 hypertension**: 140/90 mmHg or higher
+
+### Risk Factors:
+• Age and family history
+• Obesity and lack of physical activity
+• Tobacco use and excessive salt intake
+• Chronic stress
+
+*Treatment may include lifestyle changes and medications.*""",
+    
+    "heart_disease": """### Heart Disease Prevention
+
+**Lifestyle modifications:**
+• Maintain a healthy diet rich in fruits, vegetables, whole grains
+• Exercise regularly *(at least 150 minutes of moderate activity per week)*
+• Don't smoke and limit alcohol consumption
+• Manage stress effectively
+• Maintain a healthy weight
+
+**Regular health screenings:**
+• Blood pressure checks
+• Cholesterol testing  
+• Diabetes screening
+• Regular check-ups with healthcare provider
+
+*Early prevention is key to maintaining heart health.*""",
+    
+    "default": "I'm a **healthcare information assistant**. I provide general health information for *educational purposes only*. This should not replace professional medical advice."
 }
 
 def get_mock_response(message: str, bot_type: str) -> str:
