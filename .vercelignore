@@ -1,0 +1,46 @@
+# Ignore development files
+frontend/node_modules
+frontend/.next
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+
+# Ignore Python cache
+__pycache__
+*.pyc
+*.pyo
+*.pyd
+.Python
+env
+venv
+.venv
+pip-log.txt
+pip-delete-this-directory.txt
+.tox
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.log
+.git
+.mypy_cache
+.pytest_cache
+.hypothesis
+
+# Ignore Jupyter notebooks
+*.ipynb
+
+# Ignore documentation
+README.md
+VERCEL_DEPLOYMENT.md
+QUICKSTART.md
+
+# Ignore deployment scripts
+deploy.sh
+deploy.bat
+
+# Ignore test files
+test_markdown.html
