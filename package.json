@@ -1,0 +1,26 @@
+{
+  "name": "dual-ai-qa-bot-system",
+  "version": "1.0.0",
+  "description": "Advanced conversational AI system with ReACT and Self-Ask techniques",
+  "main": "index.js",
+  "scripts": {
+    "dev": "cd frontend && npm run dev",
+    "build": "cd frontend && npm run build",
+    "start": "cd frontend && npm start",
+    "deploy": "vercel --prod"
+  },
+  "keywords": [
+    "ai",
+    "chatbot", 
+    "rag",
+    "react-pattern",
+    "self-ask",
+    "nextjs",
+    "vercel"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "engines": {
+    "node": ">=18.0.0"
+  }
+}
