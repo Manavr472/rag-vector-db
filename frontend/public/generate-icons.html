@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Generating Icons...</title>
+</head>
+<body>
+    <canvas id="canvas192" width="192" height="192" style="display:none;"></canvas>
+    <canvas id="canvas512" width="512" height="512" style="display:none;"></canvas>
+    
+    <script>
+        // Generate 192x192 icon
+        const canvas192 = document.getElementById('canvas192');
+        const ctx192 = canvas192.getContext('2d');
+        
+        // Background
+        ctx192.fillStyle = '#3B82F6';
+        ctx192.fillRect(0, 0, 192, 192);
+        
+        // Bot icon representation
+        ctx192.fillStyle = '#FFFFFF';
+        ctx192.fillRect(48, 72, 96, 12);
+        ctx192.fillRect(48, 96, 96, 12);
+        ctx192.fillRect(48, 120, 72, 12);
+        
+        // Chat bubble
+        ctx192.fillStyle = '#10B981';
+        ctx192.beginPath();
+        ctx192.arc(144, 144, 24, 0, 2 * Math.PI);
+        ctx192.fill();
+        
+        // Checkmark
+        ctx192.strokeStyle = '#FFFFFF';
+        ctx192.lineWidth = 4;
+        ctx192.beginPath();
+        ctx192.moveTo(136, 144);
+        ctx192.lineTo(142, 150);
+        ctx192.lineTo(152, 138);
+        ctx192.stroke();
+        
+        // Generate 512x512 icon (scaled version)
+        const canvas512 = document.getElementById('canvas512');
+        const ctx512 = canvas512.getContext('2d');
+        
+        // Background
+        ctx512.fillStyle = '#3B82F6';
+        ctx512.fillRect(0, 0, 512, 512);
+        
+        // Bot icon representation
+        ctx512.fillStyle = '#FFFFFF';
+        ctx512.fillRect(128, 192, 256, 32);
+        ctx512.fillRect(128, 256, 256, 32);
+        ctx512.fillRect(128, 320, 192, 32);
+        
+        // Chat bubble
+        ctx512.fillStyle = '#10B981';
+        ctx512.beginPath();
+        ctx512.arc(384, 384, 64, 0, 2 * Math.PI);
+        ctx512.fill();
+        
+        // Checkmark
+        ctx512.strokeStyle = '#FFFFFF';
+        ctx512.lineWidth = 10;
+        ctx512.beginPath();
+        ctx512.moveTo(362, 384);
+        ctx512.lineTo(378, 400);
+        ctx512.lineTo(406, 368);
+        ctx512.stroke();
+        
+        // Convert to downloadable files
+        function downloadCanvas(canvas, filename) {
+            const link = document.createElement('a');
+            link.download = filename;
+            link.href = canvas.toDataURL('image/png');
+            link.click();
+        }
+        
+        // Auto-download both icons
+        setTimeout(() => {
+            downloadCanvas(canvas192, 'icon-192.png');
+            setTimeout(() => {
+                downloadCanvas(canvas512, 'icon-512.png');
+            }, 1000);
+        }, 1000);
+    </script>
+    
+    <p>Generating icon files... Check your downloads folder for icon-192.png and icon-512.png</p>
+    <p>Then move these files to the frontend/public/ directory.</p>
+</body>
+</html>

@@ -1,0 +1,5 @@
+User-agent: *
+Allow: /
+
+# Allow all bots to crawl the site
+Sitemap: /sitemap.xml
